@@ -66,7 +66,7 @@ void model_controller::start_new_game()
 
             if( row >= first_switch_row )
             {
-                data_state state{ dist( rng )? data_state::switch_vertical : data_state::switch_vertical };
+                data_state state{ dist( rng )? data_state::switch_horizontal : data_state::switch_vertical };
                 set_state( state, index );
             }
             else
