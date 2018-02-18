@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>graphics/horizontal_256_256.png</file>
+		<file>graphics/vertical_256_256.png</file>
+		<file>graphics/lock_locked_256_256.png</file>
+		<file>graphics/lock_unlocked_256_256.png</file>
+    </qresource>
+</RCC>
