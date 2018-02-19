@@ -18,14 +18,16 @@ model_controller::model_controller(QStandardItemModel& model,
         throw std::invalid_argument{ "Grid size should be positive" };
     }
 
-    m_model.setRowCount( grid_size + 1 );
-    m_model.setColumnCount( grid_size );
+    m_model.setRowCount( static_cast< int >( grid_size ) + 1 );
+    m_model.setColumnCount( static_cast< int >( grid_size ) );
 
     start_new_game();
 }
 
 void model_controller::start_new_game()
 {
+    m_total_actions = 0;
+
     std::mt19937 rng{ std::random_device{}() };
     std::uniform_int_distribution< std::mt19937::result_type > dist{ 0, 1 };
 

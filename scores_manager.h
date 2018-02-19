@@ -24,5 +24,4 @@ private:
     std::deque< int > m_scores;
 };
 
-
 #endif

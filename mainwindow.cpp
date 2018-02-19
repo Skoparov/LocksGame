@@ -105,7 +105,7 @@ void main_window::create_scores_widget()
         QFont font;
         font.setPointSize( 15 );
         font.setFamily( "Arial" );
-        int max_scores = m_manager.max_scores_num();
+        int max_scores{ static_cast< int >( m_manager.max_scores_num() ) };
 
         m_scores_widget = new QTableWidget{ this };
         m_scores_widget->setRowCount( max_scores );

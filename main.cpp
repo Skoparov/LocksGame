@@ -29,29 +29,56 @@ game_settings get_settings( int argc, char** argv )
 
     if( argc >= grid_size_pos + 1 )
     {
-        settings.grid_size = std::stoi( argv[ grid_size_pos ] );
+        int grid_size{ std::stoi( argv[ grid_size_pos ] ) };
+        if( grid_size <= 0 )
+        {
+            throw std::invalid_argument{ "Grid size should be positive" };
+        }
+
+        settings.grid_size = grid_size;
     }
 
     if( argc >=  image_size_pos + 1 )
     {
         int image_size{ std::stoi( argv[ image_size_pos ] ) };
+        if( image_size <= 0 )
+        {
+            throw std::invalid_argument{ "Image size should be positive" };
+        }
+
         settings.image_size.setHeight( image_size );
         settings.image_size.setWidth( image_size );
     }
 
     if( argc >=  action_buffer_size_pos + 1 )
     {
-        settings.action_buffer_size = std::stoi( argv[ action_buffer_size_pos ] );
+        int action_buffer_size{ std::stoi( argv[ action_buffer_size_pos ] ) };
+        if( action_buffer_size <= 0 )
+        {
+            throw std::invalid_argument{ "Action buffer size should be positive" };
+        }
+
+        settings.action_buffer_size = action_buffer_size;
     }
 
     if( argc >=  max_scores_records_pos + 1 )
     {
-        settings.max_score_records = std::stoi( argv[ max_scores_records_pos ] );
+        int max_score_records{ std::stoi( argv[ max_scores_records_pos ] ) };
+        if( max_score_records <= 0 )
+        {
+            throw std::invalid_argument{ "Score records number should be positive" };
+        }
+
+        settings.max_score_records = max_score_records;
     }
 
     if( argc >=  scores_file_name_pos + 1 )
     {
         settings.scores_file_name = argv[ scores_file_name_pos ];
+        if( settings.scores_file_name.isEmpty() )
+        {
+            throw std::invalid_argument{ "Score file name should not be empty" };
+        }
     }
 
     return settings;
