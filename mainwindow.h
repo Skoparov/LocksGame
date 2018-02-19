@@ -15,9 +15,10 @@ class main_window : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit main_window( QStandardItemModel& model,
-                          scores_manager& manager,
-                          QWidget *parent = 0 );
+    main_window( const QSize& images_size,
+                 QStandardItemModel& model,
+                 scores_manager& manager,
+                 QWidget *parent = 0 );
 
     QTableView* get_view() const noexcept;
 
@@ -31,6 +32,11 @@ signals:
     void redo();
 
 private:
+    void create_view( QStandardItemModel& model, const QSize& images_size );
+    void create_menus();
+    void create_scores_widget();
+
+private:
     scores_manager& m_manager;
     QTableView* m_game_view{ nullptr };
     QTableWidget* m_scores_widget{ nullptr };
@@ -42,4 +48,4 @@ private:
     QAction* m_top_list_action{ nullptr };
 };
 
-#endif // MAINWINDOW_H
+#endif

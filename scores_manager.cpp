@@ -53,17 +53,24 @@ void scores_manager::read_from_file()
 {
     m_scores.clear();
 
-    QFile file{ m_file_name };
-    file.open( QFile::ReadOnly );
-    if( file.isOpen() )
+    if( QFile::exists( m_file_name ) )
     {
-        QDataStream out{ &file };
-        for( size_t score_num{ 0 }; score_num < m_max_recors; ++score_num )
+        QFile file{ m_file_name };
+        file.open( QFile::ReadOnly );
+        if( file.isOpen() )
         {
-            int score{ 0 };
-            out >> score;
-            m_scores.push_back( score );
+            QDataStream out{ &file };
+            for( size_t score_num{ 0 }; score_num < m_max_recors; ++score_num )
+            {
+                int score{ 0 };
+                out >> score;
+                m_scores.push_back( score );
+            }
         }
+    }
+    else
+    {
+        m_scores.resize( m_max_recors );
     }
 
     std::sort( m_scores.begin(), m_scores.end() );

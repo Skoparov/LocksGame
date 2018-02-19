@@ -8,7 +8,7 @@
 class scores_manager
 {
 public:
-    explicit scores_manager( const QString& file_name, size_t max_records );
+    scores_manager( const QString& file_name, size_t max_records );
     void on_victory( int score );
 
     size_t max_scores_num() const noexcept;

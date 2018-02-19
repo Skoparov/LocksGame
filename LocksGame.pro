@@ -29,11 +29,15 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     scores_manager.cpp \
+    graphics_delegate.cpp \
     model_controller.cpp
 
 HEADERS += \
     mainwindow.h \
     scores_manager.h \
-    model_controller.h
+    graphics_delegate.h \
+    traversible_circular_buffer.h \
+    model_controller.h \
+    common.h
 
 RESOURCES += resources.qrc
