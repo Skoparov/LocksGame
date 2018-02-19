@@ -48,15 +48,17 @@ void graphics_delegate::paint( QPainter * painter,
 
     if( index.row() == lock_row_pos )
     {
-        QPixmap* required_pixmap{ get_pixmap( curr_state ) };
-        if( label->pixmap() != required_pixmap )
+        const QPixmap& required_pixmap = m_lock_pixmaps[ curr_state ];
+        if( label->pixmap() != &required_pixmap )
         {
-            label->setPixmap( *required_pixmap );
+            label->setPixmap( required_pixmap );
         }
     }
     else
     {
-        QMovie* required_movie{ get_movie( index, curr_state ) };
+        QMovie* required_movie{ curr_state == data_state::switch_horizontal?
+                        m_switch_movies[ index ].first : m_switch_movies[ index ].second };
+
         if( label->movie() != required_movie )
         {
             required_movie->jumpToFrame( 0 );
@@ -100,16 +102,5 @@ void graphics_delegate::init()
             m_switch_movies.insert( model->index( row, col ), { movie_vh, movie_hv } );
         }
     }
-}
-
-QMovie* graphics_delegate::get_movie( const QModelIndex &index, const data_state& state ) const
-{
-    return state == data_state::switch_horizontal?
-                m_switch_movies[ index ].first : m_switch_movies[ index ].second;
-}
-
-QPixmap* graphics_delegate::get_pixmap( const data_state& state ) const
-{
-    return &m_lock_pixmaps[ state ];
 }
 

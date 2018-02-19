@@ -28,15 +28,13 @@ signals:
 
 private:
     void init();
-    QMovie* get_movie( const QModelIndex& index, const data_state& state ) const;
-    QPixmap* get_pixmap( const data_state& state ) const;
 
 private:
     QAbstractItemView& m_view;
 
     QSize m_image_size;
-    mutable QMap< data_state, QPixmap > m_lock_pixmaps;
-    mutable QMap< QModelIndex, QPair< QMovie*, QMovie* > > m_switch_movies;
+    QMap< data_state, QPixmap > m_lock_pixmaps;
+    QMap< QModelIndex, QPair< QMovie*, QMovie* > > m_switch_movies;
 };
 
 #endif
