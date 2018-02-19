@@ -91,6 +91,9 @@ void graphics_delegate::init()
             auto movie_vh = new QMovie{ get_image_name( data_state::switch_horizontal ), {}, this };
             auto movie_hv = new QMovie{ get_image_name( data_state::switch_vertical ), {}, this };
 
+            QObject::connect( movie_hv, SIGNAL( finished() ), this, SIGNAL( animation_completed() ) );
+            QObject::connect( movie_vh, SIGNAL( finished() ), this, SIGNAL( animation_completed() ) );
+
             movie_hv->setScaledSize( m_image_size );
             movie_vh->setScaledSize( m_image_size );
 

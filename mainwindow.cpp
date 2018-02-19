@@ -5,13 +5,14 @@
 #include <QHeaderView>
 #include <QMessageBox>
 
+#include "model_controller.h"
 #include "scores_manager.h"
 #include "graphics_delegate.h"
 
 enum col_type{ score_pos_col, score_value_col };
 
-main_window::main_window( const QSize& images_size,
-                          QStandardItemModel& model,
+main_window::main_window(const QSize& images_size,
+                          model_controller& controller,
                           scores_manager& manager,
                           QWidget* parent ):
       QMainWindow( parent ),
@@ -19,7 +20,7 @@ main_window::main_window( const QSize& images_size,
 {
     create_menus();
     create_scores_widget();
-    create_view( model, images_size );
+    create_view( controller, images_size );
 
     setCentralWidget( m_game_view );
 }
@@ -57,10 +58,12 @@ void main_window::show_scores()
     m_scores_widget->show();
 }
 
-void main_window::create_view( QStandardItemModel& model, const QSize& images_size )
+void main_window::create_view( model_controller& controller, const QSize& images_size )
 {
+    qRegisterMetaType< QVector< int > >( "QVector< int >" );// for view's update slot
+
     m_game_view = new QTableView( this );
-    m_game_view->setModel( &model );
+    m_game_view->setModel( &controller.get_model() );
     m_game_view->setEditTriggers( QAbstractItemView::NoEditTriggers );
     m_game_view->setShowGrid( false );
     m_game_view->horizontalHeader()->hide();
@@ -72,11 +75,13 @@ void main_window::create_view( QStandardItemModel& model, const QSize& images_si
     graphics_delegate* del{ new graphics_delegate( images_size, *m_game_view, this ) };
     m_game_view->setItemDelegate( del );
 
+    connect( del, SIGNAL( animation_completed() ), &controller, SLOT( swap_animation_complete() ) );
+
     m_game_view->resizeColumnsToContents();
     m_game_view->resizeRowsToContents();
 
-    m_game_view->setFixedSize( QSize{ m_game_view->columnWidth( 0 ) * model.columnCount() ,
-                                      m_game_view->rowHeight( 0 ) * model.rowCount() } );
+    m_game_view->setFixedSize( QSize{ m_game_view->columnWidth( 0 ) * controller.get_model().columnCount() ,
+                                      m_game_view->rowHeight( 0 ) * controller.get_model().rowCount() } );
 }
 
 void main_window::create_menus()

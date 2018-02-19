@@ -9,6 +9,7 @@
 #include "common.h"
 
 // Paints animations and images instead of data_state values
+
 class graphics_delegate : public QStyledItemDelegate
 {
     Q_OBJECT
@@ -21,6 +22,9 @@ public:
                 const QModelIndex& index ) const override;
 
     QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override;
+
+signals:
+    void animation_completed();
 
 private:
     void init();

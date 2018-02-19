@@ -5,6 +5,9 @@
 
 #include <QSize>
 
+// Regular circular buffer with the ability to
+// travese through it's data back and forth
+
 template< typename type >
 class traversible_circular_buffer
 {

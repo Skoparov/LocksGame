@@ -9,6 +9,7 @@
 #include <QStandardItemModel>
 
 class scores_manager;
+class model_controller;
 
 class main_window : public QMainWindow
 {
@@ -16,11 +17,11 @@ class main_window : public QMainWindow
 
 public:
     main_window( const QSize& images_size,
-                 QStandardItemModel& model,
+                 model_controller& controller,
                  scores_manager& manager,
                  QWidget *parent = 0 );
 
-    QTableView* get_view() const noexcept;
+    QTableView* get_view() const noexcept;    
 
 public slots:
     void victory( int score );
@@ -32,7 +33,7 @@ signals:
     void redo();
 
 private:
-    void create_view( QStandardItemModel& model, const QSize& images_size );
+    void create_view( model_controller& controller, const QSize& images_size );
     void create_menus();
     void create_scores_widget();
 

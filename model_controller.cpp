@@ -3,9 +3,7 @@
 #include <random>
 #include <thread>
 
-#include <QQueue>
-
-model_controller::model_controller(QStandardItemModel& model,
+model_controller::model_controller( QStandardItemModel& model,
                                     size_t grid_size,
                                     size_t action_buffer_size,
                                     QObject* parent ) :
@@ -24,12 +22,17 @@ model_controller::model_controller(QStandardItemModel& model,
     start_new_game();
 }
 
+QStandardItemModel& model_controller::get_model() const noexcept
+{
+    return m_model;
+}
+
 void model_controller::start_new_game()
 {
     m_total_actions = 0;
 
-    std::mt19937 rng{ std::random_device{}() };
-    std::uniform_int_distribution< std::mt19937::result_type > dist{ 0, 1 };
+    static std::mt19937 rng{ std::random_device{}() };
+    static std::uniform_int_distribution< std::mt19937::result_type > dist{ 0, 1 };
 
     // Fill model with random values
     for( int row{ 0 }; row < m_model.rowCount(); ++row )
@@ -57,112 +60,118 @@ void model_controller::start_new_game()
 
 void model_controller::on_click( const QModelIndex& index )
 {
-    ++m_total_actions;
-    m_actions.push( action{ index.row(), index.column() } );
+    if( index.row() >= first_switch_row_pos && !m_swaps_to_be_completed )
+    {
+        ++m_total_actions;
+        m_actions.push( action{ index.row(), index.column() } );
 
-    swap_switch_group( index );
+        start_swap_switch_states( index );
+    }
 }
 
 void model_controller::undo()
 {
-    if( m_actions.has_prev() )
+    if( m_actions.has_prev() && !m_swaps_to_be_completed )
     {
         --m_total_actions;
 
         const action& prev = m_actions.prev();
         QModelIndex index{ m_model.index( prev.first, prev.second ) };
-        swap_switch_group( index );
+        start_swap_switch_states( index );
     }
 }
 
 void model_controller::redo()
 {
-    if( m_actions.has_next() )
+    if( m_actions.has_next() && !m_swaps_to_be_completed )
     {
         ++m_total_actions;
 
         const action& prev = m_actions.next();
         QModelIndex index{ m_model.index( prev.first, prev.second ) };
-        swap_switch_group( index );
+        start_swap_switch_states( index );
     }
 }
 
-enum class move_direction{ left, right, top, bottom };
-
-void maybe_add_child( const QModelIndex& index,
-                      QStandardItemModel& model,
-                      const move_direction& direction,
-                      QQueue< QPair< QModelIndex, move_direction > >& queue )
+void model_controller::maybe_add_child( const QModelIndex& index, const move_direction& direction )
 {
     if( direction == move_direction::left && index.column() - 1 >= 0 )
     {
-        queue.push_back( { model.index( index.row(), index.column() - 1 ),
+        m_swap_queue.push_back( { m_model.index( index.row(), index.column() - 1 ),
                            direction } );
     }
     else if( direction == move_direction::right &&
-             index.column() + 1 < model.columnCount() )
+             index.column() + 1 < m_model.columnCount() )
     {
-        queue.push_back( { model.index( index.row(), index.column() + 1 ),
+        m_swap_queue.push_back( { m_model.index( index.row(), index.column() + 1 ),
                            direction } );
     }
     else if( direction == move_direction::top && index.row() - 1 > lock_row_pos )
     {
-        queue.push_back( { model.index( index.row() - 1, index.column() ),
+        m_swap_queue.push_back( { m_model.index( index.row() - 1, index.column() ),
                            direction } );
     }
     else if( direction == move_direction::bottom &&
-             index.row() + 1 < model.rowCount() )
+             index.row() + 1 < m_model.rowCount() )
     {
-        queue.push_back( { model.index( index.row() + 1, index.column() ),
+        m_swap_queue.push_back( { m_model.index( index.row() + 1, index.column() ),
                            direction } );
     }
 }
 
-int get_distance_from_root( const QModelIndex& root, const QModelIndex& curr )
+uint16_t get_distance_from_root( const QPair< int, int >& root, const QModelIndex& curr )
 {
-    return root.row() == curr.row()?
-                std::abs( root.column() - curr.column() ) :
-                std::abs( root.row() - curr.row() );
+    return root.first == curr.row()?
+                std::abs( root.second - curr.column() ) :
+                std::abs( root.first - curr.row() );
 }
 
-void model_controller::swap_switch_group( const QModelIndex& start_index )
+void model_controller::start_swap_switch_states( const QModelIndex& start_index )
+{    
+    maybe_add_child( start_index, move_direction::left );
+    maybe_add_child( start_index, move_direction::right );
+    maybe_add_child( start_index, move_direction::top );
+    maybe_add_child( start_index, move_direction::bottom );
+
+    m_last_distance_from_root = 1;
+    m_swaps_to_be_completed = 1;
+    m_current_root = { start_index.row(), start_index.column() };
+
+    swap_switch_state( start_index );
+}
+
+void model_controller::swap_animation_complete()
 {
-    if( start_index.row() >= first_switch_row_pos )
+    if( m_swaps_to_be_completed )
     {
-        std::lock_guard< std::mutex > l{ m_mutex };
-
-        swap_switch_state( start_index );
-
-        // We go from root in all 4 directions, switching all the switches
-        // with the similar distance from root at a time
-        QQueue< QPair< QModelIndex, move_direction > > queue;
-        maybe_add_child( start_index, m_model, move_direction::left, queue );
-        maybe_add_child( start_index, m_model, move_direction::right, queue );
-        maybe_add_child( start_index, m_model, move_direction::top, queue );
-        maybe_add_child( start_index, m_model, move_direction::bottom, queue );
-
-        static uint32_t anim_duration{ 400 };
-
-        int distance_from_root{ 0 };
-        while( !queue.empty() )
+        --m_swaps_to_be_completed;
+        if( !m_swaps_to_be_completed )
         {
-            auto& index_and_direction = queue.front();
-
-            // Every time we increase the dist from root, wait for animation to finish
-            int curr_distance( get_distance_from_root( start_index, index_and_direction.first ) );
-            if( curr_distance > distance_from_root )
+            while( !m_swap_queue.empty() )
             {
-                std::this_thread::sleep_for( std::chrono::milliseconds{ anim_duration } );
-                distance_from_root = curr_distance;
+                auto& index_and_direction = m_swap_queue.front();
+
+                // Every time we increase the dist from root, wait for animation to finish
+                int curr_distance{ get_distance_from_root( m_current_root, index_and_direction.first ) };
+                if( curr_distance > m_last_distance_from_root )
+                {
+                    m_last_distance_from_root = curr_distance;
+                    break;
+                }
+
+                ++m_swaps_to_be_completed;
+
+                swap_switch_state( index_and_direction.first );
+                maybe_add_child( index_and_direction.first, index_and_direction.second );
+
+                m_swap_queue.pop_front();
             }
 
-            swap_switch_state( index_and_direction.first );
-            maybe_add_child( index_and_direction.first, m_model, index_and_direction.second, queue );
-
-            queue.pop_front();
+            if( !m_swap_queue.empty() )
+            {
+                update_locks();
+            }
         }
-
-        update_locks();
     }
 }
 

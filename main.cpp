@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
         controller.moveToThread( &thread );
 
         scores_manager manager{ settings.scores_file_name, settings.max_score_records };
-        main_window w{ settings.image_size, model, manager };
+        main_window w{ settings.image_size, controller, manager };
 
         QObject::connect( w.get_view(),
                           SIGNAL( clicked( const QModelIndex& ) ),
@@ -136,11 +136,8 @@ int main(int argc, char *argv[])
         w.show();
         return_code = a.exec();
 
-        if( thread.isRunning() )
-        {
-            thread.quit();
-            thread.wait();
-        }
+        thread.quit();
+        thread.wait();
     }
     catch( const std::exception& e )
     {

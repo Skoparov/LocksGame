@@ -5,6 +5,7 @@
 
 #include <QString>
 
+// Stores and saves top scores
 class scores_manager
 {
 public:
