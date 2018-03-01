@@ -127,7 +127,7 @@ uint16_t get_distance_from_root( const QPair< int, int >& root, const QModelInde
 }
 
 void model_controller::start_swap_switch_states( const QModelIndex& start_index )
-{    
+{
     maybe_add_child( start_index, move_direction::left );
     maybe_add_child( start_index, move_direction::right );
     maybe_add_child( start_index, move_direction::top );
@@ -167,10 +167,7 @@ void model_controller::swap_animation_complete()
                 m_swap_queue.pop_front();
             }
 
-            if( !m_swap_queue.empty() )
-            {
-                update_locks();
-            }
+            update_locks();
         }
     }
 }
